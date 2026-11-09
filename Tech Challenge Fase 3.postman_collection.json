@@ -1,0 +1,395 @@
+{
+	"info": {
+		"name": "Tech Challenge Fase 3 - Sistema Hospitalar",
+		"description": "Collection para testar os endpoints do sistema hospitalar.\n\n**Fluxo de teste recomendado:**\n1. Registrar um médico, enfermeiro e paciente\n2. Criar uma consulta via GraphQL (autenticado como médico ou enfermeiro)\n3. Consultar as consultas via GraphQL\n4. Verificar as notificações no notification-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "scheduling_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "notification_url",
+			"value": "http://localhost:8081"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Autenticação (scheduling-service)",
+			"item": [
+				{
+					"name": "1.1 Registrar Médico",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"dr.silva@hospital.com\",\n    \"password\": \"123456\",\n    \"name\": \"Dr. Silva\",\n    \"role\": \"MEDICO\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/auth/register",
+							"host": ["{{scheduling_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Registra um novo médico no sistema. O endpoint é público (não requer autenticação)."
+					}
+				},
+				{
+					"name": "1.2 Registrar Enfermeiro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"ana.enf@hospital.com\",\n    \"password\": \"123456\",\n    \"name\": \"Ana Enfermeira\",\n    \"role\": \"ENFERMEIRO\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/auth/register",
+							"host": ["{{scheduling_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Registra um novo enfermeiro no sistema."
+					}
+				},
+				{
+					"name": "1.3 Registrar Paciente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joao.paciente@email.com\",\n    \"password\": \"123456\",\n    \"name\": \"João Paciente\",\n    \"role\": \"PACIENTE\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/auth/register",
+							"host": ["{{scheduling_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Registra um novo paciente no sistema."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. GraphQL - Criar Consultas (scheduling-service)",
+			"item": [
+				{
+					"name": "2.1 Criar Consulta (como Médico)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "dr.silva@hospital.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"mutation { createAppointment(doctorId: 1, patientId: 3, dateTime: \\\"2025-01-15T10:30:00\\\", description: \\\"Consulta de rotina\\\") { id doctorName patientName dateTime description status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Cria uma nova consulta autenticado como médico. Envia notificação para o RabbitMQ automaticamente."
+					}
+				},
+				{
+					"name": "2.2 Criar Segunda Consulta (como Enfermeiro)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "ana.enf@hospital.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"mutation { createAppointment(doctorId: 1, patientId: 3, dateTime: \\\"2025-02-20T14:00:00\\\", description: \\\"Retorno exames\\\") { id doctorName patientName dateTime description status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Cria uma segunda consulta autenticado como enfermeiro."
+					}
+				},
+				{
+					"name": "2.3 Criar Consulta (como Paciente - deve falhar)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "joao.paciente@email.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"mutation { createAppointment(doctorId: 1, patientId: 3, dateTime: \\\"2025-03-10T09:00:00\\\", description: \\\"Teste paciente\\\") { id doctorName patientName dateTime status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Tenta criar uma consulta como PACIENTE — deve retornar erro de acesso negado (Forbidden). Pacientes não podem criar consultas."
+					}
+				}
+			]
+		},
+		{
+			"name": "3. GraphQL - Consultar (scheduling-service)",
+			"item": [
+				{
+					"name": "3.1 Listar Consultas do Paciente (como Paciente)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "joao.paciente@email.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"query { appointmentsByPatient(patientId: 3) { id doctorName patientName dateTime description status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Lista todas as consultas do paciente (ID 3). Pacientes podem consultar suas próprias consultas."
+					}
+				},
+				{
+					"name": "3.2 Listar Consultas Futuras do Paciente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "joao.paciente@email.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"query { futureAppointmentsByPatient(patientId: 3) { id doctorName dateTime description status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Lista apenas as consultas futuras do paciente (data posterior a agora)."
+					}
+				},
+				{
+					"name": "3.3 Listar Todas as Consultas (como Médico)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "dr.silva@hospital.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"query { allAppointments { id doctorName patientName dateTime description status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Lista TODAS as consultas do sistema. Apenas médicos e enfermeiros têm acesso."
+					}
+				},
+				{
+					"name": "3.4 Listar Todas as Consultas (como Paciente - deve falhar)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "joao.paciente@email.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"query { allAppointments { id doctorName patientName dateTime status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Tenta listar TODAS as consultas como PACIENTE — deve retornar erro de acesso negado. Pacientes só podem ver suas próprias consultas."
+					}
+				}
+			]
+		},
+		{
+			"name": "4. GraphQL - Atualizar Consulta (scheduling-service)",
+			"item": [
+				{
+					"name": "4.1 Atualizar Status da Consulta (como Médico)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "dr.silva@hospital.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"mutation { updateAppointment(id: 1, status: \\\"REALIZADA\\\") { id doctorName patientName dateTime status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Atualiza o status de uma consulta para REALIZADA. Envia notificação para o RabbitMQ."
+					}
+				},
+				{
+					"name": "4.2 Atualizar Data e Descrição (como Enfermeiro)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "ana.enf@hospital.com" },
+								{ "key": "password", "value": "123456" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"mutation { updateAppointment(id: 2, dateTime: \\\"2025-03-01T15:00:00\\\", description: \\\"Retorno com novos exames\\\") { id doctorName patientName dateTime description status } }\"\n}"
+						},
+						"url": {
+							"raw": "{{scheduling_url}}/graphql",
+							"host": ["{{scheduling_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Atualiza a data e descrição de uma consulta existente."
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Notificações (notification-service)",
+			"item": [
+				{
+					"name": "5.1 Listar Todas as Notificações",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{notification_url}}/notifications",
+							"host": ["{{notification_url}}"],
+							"path": ["notifications"]
+						},
+						"description": "Lista todas as notificações registradas pelo notification-service. Cada notificação corresponde a uma mensagem consumida do RabbitMQ."
+					}
+				},
+				{
+					"name": "5.2 Listar Notificações Enviadas",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{notification_url}}/notifications/status/ENVIADA",
+							"host": ["{{notification_url}}"],
+							"path": ["notifications", "status", "ENVIADA"]
+						},
+						"description": "Lista apenas as notificações com status ENVIADA."
+					}
+				}
+			]
+		}
+	]
+}

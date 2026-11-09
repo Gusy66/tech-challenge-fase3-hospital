@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: notification-service  # Nome do serviço
+
+  # Configuração do banco de dados PostgreSQL (banco separado do scheduling)
+  datasource:
+    url: jdbc:postgresql://localhost:5433/notification_db   # Porta 5433 — diferente do scheduling
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  # Configuração do JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update          # Cria/atualiza as tabelas automaticamente
+    show-sql: true              # Mostra as queries SQL no console
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Configuração do RabbitMQ
+  rabbitmq:
+    host: localhost
+    port: 5672                  # Porta padrão AMQP
+    username: guest
+    password: guest
+
+# Porta do servidor — diferente do scheduling-service (8080)
+server:
+  port: 8081

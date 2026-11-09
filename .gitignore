@@ -1,0 +1,45 @@
+# Arquivos compilados do Maven
+**/target/
+
+# Arquivos de configuração do IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.code-workspace
+.project
+.classpath
+.settings/
+.factorypath
+*.swp
+*.swo
+*~
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos de log
+*.log
+logs/
+
+# Arquivos do Maven Wrapper (já vem no Spring Initializr, mas são regeneráveis)
+.mvn/
+mvnw
+mvnw.cmd
+
+# Variáveis de ambiente e credenciais
+.env
+*.env
+application-local.yaml
+application-local.yml
+application-local.properties
+
+# Arquivos temporários do Java
+hs_err_pid*
+replay_pid*
+
+# PDF do enunciado (não faz parte do código-fonte)
+*.pdf

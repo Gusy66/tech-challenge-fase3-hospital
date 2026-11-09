@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: scheduling-service  # Nome do serviço
+
+  # Configuração do banco de dados PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/scheduling_db    # URL de conexão com o banco
+    username: admin                                         # Usuário do banco (mesmo do docker-compose)
+    password: admin123                                      # Senha do banco (mesmo do docker-compose)
+    driver-class-name: org.postgresql.Driver                # Driver JDBC do PostgreSQL
+
+  # Configuração do JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update          # Cria/atualiza as tabelas automaticamente com base nas entidades
+    show-sql: true              # Mostra as queries SQL no console (útil para debug)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect  # Dialeto SQL específico do PostgreSQL
+
+  # Configuração do RabbitMQ
+  rabbitmq:
+    host: localhost             # Host do RabbitMQ (docker-compose)
+    port: 5672                  # Porta padrão AMQP
+    username: guest             # Usuário padrão do RabbitMQ
+    password: guest             # Senha padrão do RabbitMQ
+
+  # Habilita o GraphQL
+  graphql:
+    graphiql:
+      enabled: true             # Habilita o GraphiQL (interface web para testar queries em /graphiql)
+
+# Porta do servidor
+server:
+  port: 8080

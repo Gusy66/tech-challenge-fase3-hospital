@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # Banco de dados para o serviço de agendamento
+  postgres-scheduling:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: scheduling_db        # Nome do banco
+      POSTGRES_USER: admin              # Usuário do banco
+      POSTGRES_PASSWORD: admin123       # Senha do banco
+    ports:
+      - "5432:5432"                     # Porta exposta para conexão local
+
+  # Banco de dados para o serviço de notificações
+  postgres-notification:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5433:5432"                     # Porta diferente para não conflitar
+
+  # Message broker para comunicação assíncrona entre os serviços
+  rabbitmq:
+    image: rabbitmq:3-management        # Versão com painel de gerenciamento
+    ports:
+      - "5672:5672"                     # Porta AMQP (comunicação entre serviços)
+      - "15672:15672"                   # Porta do painel web (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest

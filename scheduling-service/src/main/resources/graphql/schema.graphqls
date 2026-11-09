@@ -1,0 +1,42 @@
+# src/main/resources/graphql/schema.graphqls
+
+# Tipo que representa uma consulta médica
+type Appointment {
+    id: ID!                    # Identificador único
+    doctorName: String!        # Nome do médico
+    patientName: String!       # Nome do paciente
+    dateTime: String!          # Data e hora da consulta
+    description: String        # Descrição/motivo
+    status: String!            # Status: AGENDADA, REALIZADA, CANCELADA
+}
+
+# Consultas disponíveis (leitura)
+type Query {
+    # Busca todas as consultas de um paciente pelo ID
+    appointmentsByPatient(patientId: ID!): [Appointment]
+
+    # Busca apenas consultas futuras de um paciente
+    futureAppointmentsByPatient(patientId: ID!): [Appointment]
+
+    # Busca todas as consultas (acesso para médicos e enfermeiros)
+    allAppointments: [Appointment]
+}
+
+# Mutações (escrita/alteração de dados)
+type Mutation {
+    # Cria uma nova consulta médica
+    createAppointment(
+        doctorId: ID!,
+        patientId: ID!,
+        dateTime: String!,
+        description: String
+    ): Appointment
+
+    # Atualiza uma consulta existente
+    updateAppointment(
+        id: ID!,
+        dateTime: String,
+        description: String,
+        status: String
+    ): Appointment
+}
